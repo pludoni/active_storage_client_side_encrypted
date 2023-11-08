@@ -17,6 +17,7 @@ What works:
 - [ ] Preview - not needed until now
 - [ ] Mirror - never used
 - [ ] Different Encryption Key formats - currently only static encryption key, but Aws-sdk also supports private/public key and more
+- [ ] Tests, Different Providers than Aws-S3, should work too, but not tested.
 
 ## Installation
 
@@ -39,7 +40,7 @@ encrypted_amazon:
 
 ### tell direct upload to use `encrypted_amazon` service
 
-- Unforunately, the Direct Upload will always use the default service. To pass a different service, you have to patch the `DirectUploadController#direct_upload_url` method.
+- Unfortunately, the Direct Upload will always use the default service. To pass a different service, you have to patch the `DirectUploadController#direct_upload_url` method, for example using ``?service_name=xxx``.
 
 ```ruby
 # config/initializers/active_storage_direct_upload_patch.rb
@@ -53,6 +54,11 @@ end
 Rails.application.reloader.to_prepare do
   ActiveStorage::DirectUploadsController.prepend ASDirectUploadPatch
 end
+```
+Then, you can link to the direct upload url like this:
+
+```erb
+<%= f.file_field :file, multiple: true, "data-direct-upload-url" => rails_direct_uploads_url(service_name: 'encrypted_amazon') %>
 ```
 
 ## License
