@@ -34,8 +34,12 @@ encrypted_amazon:
   secret_access_key: <%= Rails.application.secrets.dig(:aws, :secret_access_key) %>
   region: <%= Rails.application.secrets.dig(:aws, :region) %>
   bucket: <%= Rails.application.secrets.dig(:aws, :bucket) %>
-  # Static Encryption Key: 32 bytes
-  encryption_key: <%= Rails.application.secret_key_base[0..31] %>
+
+  # Static Encryption Key: 32 bytes - must be 32 bytes = 256bit length.
+  # mark as base64 to encode all ascii characters
+  # generate with: Base64.strict_encode64(OpenSSL::Cipher.new("AES-256-ECB").random_key)
+  encryption_key: "base64:vbMnOv+ZjD0kp/DEEw1gCTjmleCWZafjENNwvIzq6DQ="
+  # encryption_key: "<%= Base64.strict_encode64(Rails.application.secret_key_base[0..31]) %>"
 ```
 
 ### tell direct upload to use `encrypted_amazon` service

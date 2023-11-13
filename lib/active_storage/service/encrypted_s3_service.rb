@@ -6,12 +6,15 @@ module ActiveStorage
 
     def initialize(bucket:, upload: {}, **options)
       # https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/S3/Encryption.html
-      super_options = options.except(:kms_key_id, :encryption_key, :encryption_key)
+      super_options = options.except(:kms_key_id, :encryption_key)
       super(bucket: bucket, upload: upload, **super_options)
 
+      # TODO: different Key Formats? Pub/Private?
+      if options[:encryption_key].to_s[/base64:(.*)/]
+        options[:encryption_key] = Base64.decode64($1)
+      end
       if options[:encryption_key].length > 32
-        # TODO: different Key Formats? Pub/Private?
-        options[:encryption_key] = options[:encryption_key][0..31]
+        raise ArgumentError, "Encryption Key must be 32 bytes"
       end
       @encryption_client = Aws::S3::EncryptionV2::Client.new(
         options.merge(
@@ -90,7 +93,7 @@ module ActiveStorage
     private
 
     def current_host
-      ActiveStorage::Current.host || Rails.application.config.action_mailer.default_url_options[:host]
+      (ActiveStorage::Current.url_options || Rails.application.config.action_mailer.default_url_options)[:host]
     end
 
     def private_url(key, expires_in:, filename:, content_type:, disposition:, **)
